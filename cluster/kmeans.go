@@ -3,61 +3,55 @@ package cluster
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/hpxro7/golearn/base"
 )
 
-type kMeansCluster struct {
-	k            int
-	trials       int
+type KMeans struct {
+	Clusters     int
+	TrainingData *base.Instances
+	iterations   int
+	init         InitBy
 	tolerance    float64
-	trainingData *base.Instances
 }
 
-// Defines cluster initialization types
-type InitType int8
+type InitBy func(*KMeans) [][]float64
 
-const (
-	KMeansPlus InitType = iota
-	Randomized
+var (
+	KMeansPlus InitBy = func(kMeans *KMeans) [][]float64 {
+		return nil
+	}
+
+	KRandomized InitBy = func(kMeans *KMeans) [][]float64 {
+		data := kMeans.TrainingData
+		var centroids [][]float64
+		randomRows := rand.Perm(data.Rows)[:kMeans.Clusters]
+		for _, row := range randomRows {
+			centroids = append(centroids, data.GetRowVector(row))
+		}
+		return centroids
+	}
 )
 
-func NewKMeansCluster(clusters, initTrials int, tolerance float64) *kMeansCluster {
-	cluster := &kMeansCluster{
-		k:         clusters,
-		trials:    initTrials,
-		tolerance: tolerance,
+func NewKMeans(clusters, iterations int, init InitBy, tolerance float64) *KMeans {
+	cluster := &KMeans{
+		Clusters:   clusters,
+		init:       init,
+		iterations: iterations,
+		tolerance:  tolerance,
 	}
 	return cluster
 }
 
-func (kmeans *kMeansCluster) Fit(data *base.Instances) {
-	kmeans.trainingData = data
-}
-
-func (kmeans *kMeansCluster) Predict(data *base.Instances) *base.Instances {
-	centroids := kmeans.initCentroids(data, Randomized)
-	return nil
-}
-
-func (kmeans *kMeansCluster) initCentroids(data *base.Instances, init InitType) map[int][]float64 {
-	centroids := make(map[int][]float64, kmeans.k)
-	switch init {
-	case KMeansPlus:
-		panic("K-means++ Initialization not Supported...")
-	case Randomized:
-		{
-			rand.Seed(time.Now().Unix())
-			randomRows := rand.Perm(data.Rows)[:kmeans.k]
-			for i, row := range randomRows {
-				fmt.Println(row)
-				centroids[i] = data.GetRowVector(row)
-			}
-		}
-	default:
-		panic("Unknown initialization type used")
+func (kMeans *KMeans) Fit(data *base.Instances) {
+	if data.Rows < kMeans.Clusters {
+		panic("kmeans: Fewer training instances than clusters")
 	}
+	kMeans.TrainingData = data
+	centroids := kMeans.init(kMeans)
+	fmt.Println(centroids)
+}
 
-	return centroids
+func (kMeans *KMeans) Predict(data *base.Instances) *base.Instances {
+	return nil
 }
