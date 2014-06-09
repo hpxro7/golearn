@@ -14,16 +14,18 @@ func main() {
 		panic(errString)
 	}
 
-	chooseFirstK := func(kmeans *cluster.KMeans) [][]float64 {
+	/*chooseFirstK := func(kmeans *cluster.KMeans) [][]float64 {
 		data := kmeans.TrainingData
 		var centroids [][]float64
 		for i := 0; i < kmeans.Clusters; i++ {
 			centroids = append(centroids, data.GetRowVector(i))
 		}
 		return centroids
-	}
+	}*/
 
-	kCluster := cluster.NewKMeans(3, 5, chooseFirstK, 1e-2)
+	kCluster := cluster.NewKMeans(3, 5, cluster.KRandomized, 1e-2)
 	kCluster.Fit(data)
 	kCluster.Predict(data)
+
+	fmt.Println("Number of rows: ", data.Rows)
 }
