@@ -76,9 +76,9 @@ func clusterAssign(centroids [][]float64, data *base.Instances) (labels map[int]
 	labels = make(map[int][]float64, data.Rows)
 
 	for row := 0; row < data.Rows; row++ {
-		minNorm, minCentroid := normSquared(data.GetRowVector(row), centroids[0]), 0
+		minNorm, minCentroid := squaredNorm(data.GetRowVector(row), centroids[0]), 0
 		for i := 1; i < len(centroids); i++ {
-			currNorm := normSquared(data.GetRowVector(row), centroids[i])
+			currNorm := squaredNorm(data.GetRowVector(row), centroids[i])
 			if currNorm < minNorm {
 				minNorm, minCentroid = currNorm, i
 			}
@@ -88,7 +88,7 @@ func clusterAssign(centroids [][]float64, data *base.Instances) (labels map[int]
 	return
 }
 
-func normSquared(centroid, dataPoint []float64) float64 {
+func squaredNorm(centroid, dataPoint []float64) float64 {
 	result := 0.0
 	dimensions := len(centroid)
 	for i := 0; i < dimensions; i++ {
