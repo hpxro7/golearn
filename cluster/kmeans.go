@@ -9,7 +9,7 @@ import (
 )
 
 type KMeans struct {
-	Clusters     int
+	K            int
 	TrainingData *base.Instances
 	iterations   int
 	init         InitBy
@@ -26,7 +26,7 @@ var (
 	KRandomized InitBy = func(kMeans *KMeans) [][]float64 {
 		data := kMeans.TrainingData
 		var centroids [][]float64
-		randomRows := rand.Perm(data.Rows)[:kMeans.Clusters]
+		randomRows := rand.Perm(data.Rows)[:kMeans.K]
 		for _, row := range randomRows {
 			centroids = append(centroids, data.GetRowVector(row))
 		}
@@ -34,9 +34,9 @@ var (
 	}
 )
 
-func NewKMeans(clusters, iterations int, init InitBy, tolerance float64) *KMeans {
+func NewKMeans(k, iterations int, init InitBy, tolerance float64) *KMeans {
 	cluster := &KMeans{
-		Clusters:   clusters,
+		K:          clusters,
 		init:       init,
 		iterations: iterations,
 		tolerance:  tolerance,
@@ -45,7 +45,7 @@ func NewKMeans(clusters, iterations int, init InitBy, tolerance float64) *KMeans
 }
 
 func (kmeans *KMeans) Fit(data *base.Instances) {
-	if data.Rows < kmeans.Clusters {
+	if data.Rows < kmeans.K {
 		panic("kmeans: Fewer training instances than clusters")
 	}
 	kmeans.TrainingData = data
