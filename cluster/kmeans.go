@@ -3,14 +3,13 @@ package cluster
 import (
 	"fmt"
 	"math"
-	"math/rand"
 
 	"github.com/hpxro7/golearn/base"
 )
 
 type KMeans struct {
 	K            int
-	TrainingData *base.Instances
+	TrainingData *base.FixedDataGrid
 	iterations   int
 	init         InitBy
 	tolerance    float64
@@ -24,12 +23,13 @@ var (
 	}
 
 	KRandomized InitBy = func(kMeans *KMeans) [][]float64 {
-		data := kMeans.TrainingData
-		var centroids [][]float64
-		randomRows := rand.Perm(data.Rows)[:kMeans.K]
+		centroids := make([][]float64, kMeans.K)
+		shuffled := base.LazyShuffle(kMeans.TrainingData)
+		shuffled.MapOverRows()
+		/*randomRows := rand.Perm(data.Rows)[:kMeans.K]
 		for _, row := range randomRows {
 			centroids = append(centroids, data.GetRowVector(row))
-		}
+		}*/
 		return centroids
 	}
 )
@@ -44,7 +44,7 @@ func NewKMeans(k, iterations int, init InitBy, tolerance float64) *KMeans {
 	return cluster
 }
 
-func (kmeans *KMeans) Fit(data *base.Instances) {
+func (kmeans *KMeans) Fit(data *base.FixedDataGrid) {
 	if data.Rows < kmeans.K {
 		panic("kmeans: Fewer training instances than clusters")
 	}
@@ -72,7 +72,7 @@ func (kmeans *KMeans) fitSingle(oldCentroids [][]float64) (map[int][]float64, fl
 	// Compute inertia / distortion error
 }
 
-func clusterAssign(centroids [][]float64, data *base.Instances) (labels map[int][]float64) {
+func clusterAssign(centroids [][]float64, data *base.FixedDataGrid) (labels map[int][]float64) {
 	labels = make(map[int][]float64, data.Rows)
 
 	for row := 0; row < data.Rows; row++ {
@@ -97,6 +97,6 @@ func squaredNorm(centroid, dataPoint []float64) float64 {
 	return result
 }
 
-func (kmeans *KMeans) Predict(data *base.Instances) *base.Instances {
+func (kmeans *KMeans) Predict(data *base.FixedDataGrid) *base.FixedDataGrid {
 	return nil
 }
